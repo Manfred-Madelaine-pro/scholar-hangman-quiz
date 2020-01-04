@@ -3,28 +3,6 @@ import random
 
 
 
-# ------------------------------------ Requirements ------------------------------------
-
-# Etapes Quizz Trilingue
-
-# 0.1- créer les données
-# 0.2- Introduction
-# 0.3- demander à l'utilisateur de choisir la language de départ (chat/français/minion)
-# 1- choisir un mot à trouver aléatoirement en fonction de la language
-
-# 2.1- choisir langue de traduction qui n'est pas la lanque initiale
-# 2.2- demander à l'utilisateur de le traduire
-# 3- afficher succès
-#    - boucler à l'étape 0
-
-# 4- afficher erreur
-#    - commencer le jeu du Pendu
-
-# 5- Fin du Pendu => afficher succès ou défaite
-# 6- Recommencer le jeu
-
-
-
 # ------------------------------------ Static Variables ------------------------------------
 
 MAX_ATTEMPTS = 3

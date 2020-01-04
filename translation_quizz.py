@@ -5,18 +5,19 @@ import random
 
 # ------------------------------------ Static Variables ------------------------------------
 
-MAX_ATTEMPTS = 3
+MAX_ATTEMPTS = 6
 UNKNOWN_CHAR = '_'
 RANDOM_GUESS = False
 
 
-# liste des languages possible
-all_languages = ['French', 'Cat', 'Minion']
-# dictionnaire_de_mot = { entier: {langue: mot} }
-dico = {
-    0: {all_languages[0]: 'quoi', all_languages[1]: 'miaou', all_languages[2]: 'kasa'},
-    1: {all_languages[0]: 'bonjour', all_languages[1]: 'miaouhou', all_languages[2]: 'holala'},
-    1: {all_languages[0]: 'mechant', all_languages[1]: 'kashii', all_languages[2]: 'papaya'}
+# available languages
+ALL_LANGUAGES = ['French', 'Cat', 'Minion']
+# word_dictionnary = { integer: {language: word} }
+WORD_DICTIONNARY = {
+    0: {ALL_LANGUAGES[0]: 'quoi', ALL_LANGUAGES[1]: 'miaouhou', ALL_LANGUAGES[2]: 'kasa'},
+    1: {ALL_LANGUAGES[0]: 'bonjour', ALL_LANGUAGES[1]: 'mimi', ALL_LANGUAGES[2]: 'holala'},
+    2: {ALL_LANGUAGES[0]: 'mechant', ALL_LANGUAGES[1]: 'kashii', ALL_LANGUAGES[2]: 'papaya'}
+    # TODO add more words...
 }
 
 
@@ -63,22 +64,21 @@ def guess_letter():
 def guess_letter_random():
     return(random.choice(string.ascii_lowercase))
 
-
 def guess_letter_user():
     letter = input("\t> ")
     return letter.lower()
 
 
 
-# ------------------------------------ Quizz ------------------------------------
+# ------------------------------------ Quiz ------------------------------------
 
-def translation_quizz():
-    intro_quizz()
+def translation_quiz():
+    intro_quiz()
 
-    words = choose_words(dico)
+    words = choose_words(WORD_DICTIONNARY)
 
-    l_start = choose_language(all_languages)
-    l_trans = choose_translation_language(all_languages, l_start)
+    l_start = choose_language(ALL_LANGUAGES)
+    l_trans = choose_translation_language(ALL_LANGUAGES, l_start)
 
     print_translation_language(l_start, l_trans)
 
@@ -101,7 +101,7 @@ def translation_quizz():
 
 
 
-# ------------------------------------ Pendu ------------------------------------
+# ------------------------------------ Hangman ------------------------------------
 
 def play_hangman(correct_w):
     intro_hangman()
@@ -116,22 +116,10 @@ def play_hangman(correct_w):
         letter = guess_letter()
         print_attempt(letter, type='letter' if (len(letter) == 1) else 'word')
 
-        if is_correct_word(letter, correct_w):
+        if found_word(letter, correct_w):
             return True
 
-        if letter in uncomplete_w:
-            misses.append(letter)
-            print_already_found()
-        elif len(letter) == 1 and letter in complete_w:
-            new_letters = 0
-            for i, e in enumerate(correct_w):
-                if letter == e:
-                    new_letters += 1
-                    uncomplete_w[i] = e
-            print_correct_guess(new_letters)
-        else:
-            misses.append(letter)
-            print_fail(letter, len(misses))
+        control(letter, correct_w, uncomplete_w, complete_w, misses)
 
         print_end_of_turn()
 
@@ -140,14 +128,32 @@ def play_hangman(correct_w):
 def continue_hangman(fails, uncomplete_w):
     return (fails < MAX_ATTEMPTS) and (uncomplete_w.count(UNKNOWN_CHAR) > 0)
 
-def is_correct_word(word, correct_word):
-    return word == correct_word
+def found_word(word, correct_w):
+    return word == correct_w
+
+def control(letter, correct_w, uncomplete_w, complete_w, misses):
+    if letter in uncomplete_w:
+        misses.append(letter)
+        print_already_found()
+
+    elif (len(letter) == 1) and (letter in complete_w):
+        new_letters = 0
+        for i, e in enumerate(correct_w):
+            if letter == e:
+                new_letters += 1
+                uncomplete_w[i] = e
+        print_correct_guess(new_letters)
+    
+    else:
+        misses.append(letter)
+        print_fail(letter, len(misses))
+
 
 
 # ------------------------------------ Prints ------------------------------------
 
-def intro_quizz():
-    print("\n--- Welcome to the Translation Quizz ! ---\n")
+def intro_quiz():
+    print("\n--- Welcome to the Translation Quiz ! ---\n")
 
 def intro_hangman():
     print("\n\n--- Try to find the word by playing Hangman ! ---\n")
@@ -159,6 +165,7 @@ def print_translate_word(w_to_trans, l_start, l_trans):
     print("Translate the word '{}' from {} to {}:".format(w_to_trans, l_start, l_trans))
 
 def print_hangman(word, misses):
+    draw_hangman(len(misses))
     print("Word   : {}".format(" ".join(word)))
     if (len(misses) > 0):
         print("Misses : {}".format(", ".join(misses)))
@@ -172,11 +179,12 @@ def print_correct_guess(new_letters):
 
 def print_already_found():
     print("You have already found this letter !")
-    
+
 def print_fail(letter, fails):
     if(len(letter) > 1):
         print_fail_word()
-    print_fail_letter(fails)
+    else:
+        print_fail_letter(fails)
     print("Failing attempt n° {}/{}.".format(fails, MAX_ATTEMPTS))
 
 def print_fail_letter(fails):
@@ -196,10 +204,6 @@ def print_fail_word():
 
 def print_end_of_turn():
     end_of_turn_messages = [
-        "-----------------------------------------------------",
-        "-----------------------------------------------------",
-        "~~~~~~~~~~~~~~~~~~~~~ (** ^ **) ~~~~~~~~~~~~~~~~~~~~~",
-        "-----------------------------------------------------",
         "-----------------------------------------------------"
     ]
     print(random.choice(end_of_turn_messages) + "\n")
@@ -207,8 +211,9 @@ def print_end_of_turn():
 def print_game_over():
     loose_messages = [
         "You lost :'(...", 
+        "You lost T-T...",
         "game over ! You'll do better next time :D.", 
-        "Look's like you're not very good at translation :(...", 
+        "Looks like you're not very good at translation :(...", 
         "Ho, you lost again... This word was hard for me too you know."
     ]
     print_box(random.choice(loose_messages))
@@ -220,7 +225,6 @@ def print_win():
         "Great, your guess was right !"
     ]
     print_box(random.choice(win_messages))
-
 
 def print_box(text):
     padding = 5
@@ -242,11 +246,68 @@ def print_restart():
 
 
 
+# ------------------------------------ Animation ------------------------------------
+
+def draw_hangman(fails):
+    hangman = {
+        0: '''
+         ======
+         |    Y 
+              I 
+              I  
+              I
+            =====
+        ''',
+        1: '''
+         ======
+         |    Y  
+         o    I 
+              I  
+              I
+            =====
+        ''',
+        2: '''
+         ======
+         |    Y  
+         o    I 
+         |    I  
+              I
+            =====
+        ''',
+        3: '''
+         ======
+         |    Y  
+         o    I 
+        '|    I  
+              I
+            =====
+        ''',
+        4: '''
+         ======
+         |    Y  
+         o    I 
+        '|'   I  
+              I
+            =====
+        ''',
+        5: '''
+         ======
+         |    Y  
+         o    I 
+        '|'   I  
+         ^    I
+            =====
+        '''
+    }
+    print(hangman[fails])
+
+
+
 # ------------------------------------ Main ------------------------------------
 
 def main():
     while "is playing":
-        translation_quizz()
+        translation_quiz()
 
         if(not restart()):
             break
